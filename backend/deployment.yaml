@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: default
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: default
+  template:
+    metadata:
+      labels:
+        app: default
+    spec:
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+          - name: single-request-reopen
+      dnsPolicy: ClusterFirst
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - default
+                topologyKey: kubernetes.io/hostname
+      terminationGracePeriodSeconds: 120
+      imagePullSecrets:
+      - name: google
+      containers:
+      - name: default
+        image: ubuntu:20.04
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            memory: "100Mi"
+            cpu: "100m"
+          limits:
+            memory: "100Mi"
+            cpu: "100m"
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - 'sleep 60'

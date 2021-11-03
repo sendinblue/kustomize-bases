@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    kubernetes.io/ingress.class: haproxy
+    haproxy.org/ssl-redirect: "true"
+  name: default
+spec:
+  tls:
+  - hosts:
+    - default.svc.cluster.local
+    secretName: default-cert
+  rules:
+    - host: default.svc.cluster.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: default
+                port:
+                  number: 80
